@@ -3,8 +3,6 @@ Python addon scripts for use with mitmproxy
 
 -----
 
-[TOC]
-
 ## **Overview** ##
 
 These python scripts are meant to be used along with the `mitmproxy` application.
