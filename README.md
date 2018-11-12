@@ -3,8 +3,6 @@ Python addon scripts for use with mitmproxy
 
 -----
 
-[TOC]
-
 ## **Overview** ##
 
 These python scripts are meant to be used along with the `mitmproxy` application.
@@ -20,8 +18,10 @@ Through the `Intercept` scripts, we can manipulate the requests/responses on the
 
 1. Place the expected JSON response under the `responses` directory. A sample JSON file is already placed for reference.
 2. Place the request URL to be mocked along with the response file under `mappings.json` file. An example mapping has already been placed.
-3. Run `mitmproxy` using the intercept script:
+
+### **Execution** ##
+1. Run `mitmproxy` using the intercept script:
 	```
 	mitmdump -s intercept.py
 	```
-4. Try to send a sample request.
+2. Try to send a sample request to the request URL in your `mappings.json` file. It should be able to respond using the dummy response JSON file.
