@@ -36,7 +36,11 @@ class Intercept:
         
         parsed = urlparse(self.intercept[self.REQUEST_URL_KEY])
         req_host = parsed.netloc
-        req_path = parsed.path + "?" + parsed.query
+                
+        if len(parsed.query) > 0:
+            req_path = parsed.path + "?" + parsed.query
+        else:
+            req_path = parsed.path
         
         ctx.log.info("HOST: %s" % req_host)
         ctx.log.info("PATH: %s" % req_path)
