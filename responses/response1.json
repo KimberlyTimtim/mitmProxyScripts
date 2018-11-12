@@ -1,0 +1,9 @@
+{
+	"response_body": {
+		"sampleResponse": {
+			"hello":  "world"
+		}
+	},
+	"status_code": 9999,
+	"reason": "SUPER SAIYAN"
+}

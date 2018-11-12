@@ -1,0 +1,6 @@
+{
+	"mappings": [{
+		"request_url": "https://example.com/v1",
+		"response_file": "responses/response1.json"
+	}]
+}
