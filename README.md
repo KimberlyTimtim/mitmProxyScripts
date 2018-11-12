@@ -5,7 +5,7 @@ Python addon scripts for use with mitmproxy
 
 [TOC]
 
-## **Overview **##
+## **Overview ** ##
 
 These python scripts are meant to be used along with the `mitmproxy` application.
 For this particular case, we are using `mitmproxy` as a **Regular Proxy**
