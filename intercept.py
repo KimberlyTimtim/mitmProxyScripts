@@ -5,14 +5,20 @@
 # Subclass of Intercept class of mitmproxy.
 # Allows intercept and modification of HTTP requests/responses.
 # *****************************************************
-from mitmproxy import flowfilter
+
 from mitmproxy import ctx
+from mitmproxy import http
 from util import Util
 import json
-from urllib.parse import urlparse
+import redis
 
 # global constants
-MAPPINGS_KEY = "mappings"
+INT_REQ_MAPPINGS_KEY = "intercept_request_mappings"
+INT_RES_MAPPINGS_KEY = "intercept_response_mappings"
+TYPE_KEY = "type"
+TYPE_REQUEST = "request"
+TYPE_RESPONSE = "response"
+
 
 class Intercept:
 
@@ -22,58 +28,69 @@ class Intercept:
     RESP_BODY_KEY = "response_body"
     RESP_STATUS_KEY = "status_code"
     RESP_REASON_KEY = "reason"
+    CACHE_KEY = "cache_key"
+
+    REDIS_HOST = "localhost"
+    REDIS_PORT = 6379
+    REDIS_DB = 0
 
     def __init__(self, domain):
         self.intercept = domain
+        self.redis = redis.StrictRedis(host=self.REDIS_HOST, port=self.REDIS_PORT, db=self.REDIS_DB)
+    
+    def request(self, flow: http.HTTPFlow) -> None:
+        ctx.log.info("REQUESTED: %s" % flow.request.pretty_url)
+        ctx.log.info("COMPARED:  %s" % self.intercept[self.REQUEST_URL_KEY])
 
-    def response(self, flow):
-        ctx.log.info("================ ACTUAL REQUEST ================")
-        ctx.log.info("HOST: %s" % flow.request.host)
-        ctx.log.info("PATH: %s" % flow.request.path)
-        
-        ctx.log.info("================ COMPARE =======================")
-        ctx.log.info("INTERCEPT URL: %s" % self.intercept[self.REQUEST_URL_KEY])
-        
-        parsed = urlparse(self.intercept[self.REQUEST_URL_KEY])
-        req_host = parsed.netloc
-                
-        if len(parsed.query) > 0:
-            req_path = parsed.path + "?" + parsed.query
-        else:
-            req_path = parsed.path
-        
-        ctx.log.info("HOST: %s" % req_host)
-        ctx.log.info("PATH: %s" % req_path)
-                
-        # intercept only selected requests
-        #if ( (flow.request.host in self.intercept[self.REQUEST_URL_KEY]) and (flow.request.path in self.intercept[self.REQUEST_URL_KEY]) ):
-        if ( (flow.request.host == req_host) and (flow.request.path == req_path) ):
-           flow.intercept()
-           
-           # perform response modifications
-           # load from file
-           with open(self.intercept[self.RESPONSE_FILE_KEY]) as json_data:
-               response_map = json.load(json_data)
-           
-           # setting response body
-           flow.response.content = json.dumps(response_map[self.RESP_BODY_KEY]).encode('utf-8')
-           
-           # setting status code
-           flow.response.status_code = response_map[self.RESP_STATUS_KEY]
-           
-           # setting status reason
-           flow.response.reason = response_map[self.RESP_REASON_KEY]
-           
-           flow.resume()
-           ctx.log.info("================ MOCKED RESPONSE ================")
-           ctx.log.info("%s" % flow.response.content)
-           ctx.log.info("=================================================")
+        if flow.request.pretty_url == self.intercept[self.REQUEST_URL_KEY]:
+            if self.intercept[TYPE_KEY] == TYPE_RESPONSE:
+                # load stub response from file
+                with open(self.intercept[self.RESPONSE_FILE_KEY]) as json_data:
+                    response_map = json.load(json_data)
+
+                # parse stub response body
+                stub_response = json.dumps(response_map[self.RESP_BODY_KEY]).encode('utf-8')
+                # parse stub response code
+                stub_status_code = response_map[self.RESP_STATUS_KEY]
+
+                # construct response object
+                flow.response = http.HTTPResponse.make(
+                    200,
+                    stub_response,
+                    {"Content-Type": "application/json"}
+                )
+            elif self.intercept[TYPE_KEY] == TYPE_REQUEST:
+                ctx.log.info("Firebase Request Intercepted: Writing to Redis...")
+                cachekey = self.intercept[self.CACHE_KEY]
+
+                # write request to Redis
+                if self.redis.get(cachekey) is not None:
+                    ctx.log.info("Overwriting existing entry.")
+
+                cache_map = dict()
+                cache_map['url'] = flow.request.pretty_url
+                cache_map['method'] = flow.request.method
+                cache_map['content'] = flow.request.content.decode("utf-8")
+
+                # set redis entry, expiry is 7 days (604800 seconds)
+                self.redis.set(cachekey, cache_map, 604800)
+                ctx.log.info("Redis write successful.")
+
 
 # Load mapping from Util class
 util = Util()
-mapping_list = util.loadReqResMappingFromFile()[MAPPINGS_KEY]
+
+res_mapping_list = util.loadReqResMappingFromFile()[INT_RES_MAPPINGS_KEY]
 
 # add Intercept object to addons for each mapping
 addons = []
-for mapping in mapping_list:
-    addons.append(Intercept(mapping))
+for res_mapping in res_mapping_list:
+    res_mapping[TYPE_KEY] = TYPE_RESPONSE
+    addons.append(Intercept(res_mapping))
+
+req_mapping_list = util.loadReqResMappingFromFile()[INT_REQ_MAPPINGS_KEY]
+
+# add Intercept object to addons for each mapping
+for req_mapping in req_mapping_list:
+    req_mapping[TYPE_KEY] = TYPE_REQUEST
+    addons.append(Intercept(req_mapping))

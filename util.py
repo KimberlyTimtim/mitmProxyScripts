@@ -22,3 +22,4 @@ class Util:
         with open(self.MAPPING_FILE) as mapping_file:
             mapping_json = json.load(mapping_file)
         return mapping_json
+
