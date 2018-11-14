@@ -1,6 +1,14 @@
 {
-	"mappings": [{
+	"intercept_request_mappings": [{
 		"request_url": "https://example.com/v1",
+		"cache_key": "firebase_req"
+	}],
+	"intercept_response_mappings": [{
+		"request_url": "https://example.com/v2",
 		"response_file": "responses/response1.json"
+	},
+	{
+		"request_url": "https://example.com/v3",
+		"response_file": "responses/response2.json"
 	}]
 }

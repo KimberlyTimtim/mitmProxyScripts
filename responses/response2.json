@@ -1,6 +1,6 @@
 {
 	"response_body": {
-		"servicePointInformationResponse_1": {
+		"servicePointInformationResponse_2": {
 			"customerSupports": {
 				
 			},
@@ -25,6 +25,6 @@
 			}]
 		}
 	},
-	"status_code": 9999,
-	"reason": "SUPER SAIYAN"
+	"status_code": 600,
+	"reason": "Random Status Code"
 }
