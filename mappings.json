@@ -10,5 +10,13 @@
 	{
 		"request_url": "https://api2.postnord.com/rest/shipment/v4/trackandtrace/findByIdentifier.json?id=7890&locale=EN&apikey=whatislove",
 		"response_file": "responses/response2.json"
+	},
+	{
+		"request_url": "http://lbc-lb-as.idp.posten.se:53080/ntt-service-rest/api/shipmentinfo.json?key=notifiertest@gmail.com&keyType=email&time=2590000",
+		"response_file": "responses/shipment-provider-response.json"
+	},
+	{
+		"request_url": "http://atapi2.postnord.com/rest/customer/v1/identity/authenticate/notifiertest@gmail.com?deviceid=some-deviceId&hash=samplehash&apikey=e476dbda060275f0be0f61f9ac7fdf6a",
+		"response_file": "responses/hash-authenticate-response.json"
 	}]
 }

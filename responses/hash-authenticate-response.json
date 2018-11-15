@@ -1,0 +1,9 @@
+{
+	"response_body": {
+		"sampleResponse": {
+			"hello":  "worldszzzzz"
+		}
+	},
+	"status_code": 200,
+	"reason": "hash is valid"
+}
