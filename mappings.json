@@ -1,6 +1,6 @@
 {
 	"intercept_request_mappings": [{
-		"request_url": "https://example.com/v1",
+		"request_url": "http://fcm.googleapis.com/fcm/send",
 		"cache_key": "firebase_req"
 	}],
 	"intercept_response_mappings": [{
