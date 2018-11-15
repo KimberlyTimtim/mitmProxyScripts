@@ -44,8 +44,17 @@ class Intercept:
 
         if flow.request.pretty_url == self.intercept[self.REQUEST_URL_KEY]:
             if self.intercept[TYPE_KEY] == TYPE_RESPONSE:
+                response_file = self.intercept[self.RESPONSE_FILE_KEY]
+                if flow.request.pretty_url == "http://lbc-lb-as.idp.posten.se:53080/ntt-service-rest/api/shipmentinfo.json?key=notifiertest@gmail.com&keyType=email&time=2590000":
+                    mockcount = self.redis.get('shipmentmock:count')
+                    if mockcount == b'1':
+                        response_file = "responses/shipment-provider-response-added.json"
+                        self.redis.delete('shipmentmock:count')
+                    else:
+                        response_file = "responses/shipment-provider-response.json"
+                        self.redis.set('shipmentmock:count', '1')
                 # load stub response from file
-                with open(self.intercept[self.RESPONSE_FILE_KEY]) as json_data:
+                with open(response_file) as json_data:
                     response_map = json.load(json_data)
 
                 # parse stub response body

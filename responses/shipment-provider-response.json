@@ -1,0 +1,13 @@
+{
+	"response_body": {
+	    "ShipmentInformationResponse" : {
+			"shipments": [
+			{
+				"shipmentId" : "some-shipment-id-1"
+			}
+		]
+		}
+	},
+	"status_code": 200,
+	"reason": "OK"
+}
