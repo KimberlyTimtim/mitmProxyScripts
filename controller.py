@@ -21,7 +21,7 @@ class FirebaseReqCacheService:
     # redis connection configuration
     REDIS_HOST = "localhost"
     REDIS_PORT = 6379
-    REDIS_DB = 0
+    REDIS_DB = 5
 
     # redis cache constants
     REDIS_CACHED_REQ_KEY = "firebase_req_"
