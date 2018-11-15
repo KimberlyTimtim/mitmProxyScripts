@@ -1,5 +1,5 @@
 # *****************************************************
-# Intercept.py
+# intercept.py
 # Created by: k.timtim
 # 
 # Subclass of Intercept class of mitmproxy.
@@ -29,6 +29,16 @@ class Intercept:
     RESP_STATUS_KEY = "status_code"
     RESP_REASON_KEY = "reason"
     CACHE_KEY = "cache_key"
+
+    IDENTIFIER_KEY = "to"
+    FOREGROUND_KEY = "foreground"
+    BACKGROUND_KEY = "background"
+    URL_KEY = "url"
+    METHOD_KEY = "method"
+    CONTENT_KEY = "content"
+    PRIORITY_KEY = "priority"
+    NOTIFICATION_KEY =  "notification"
+    CONTENT_AVAILABLE = "content_available"
 
     REDIS_HOST = "localhost"
     REDIS_PORT = 6379
@@ -61,16 +71,42 @@ class Intercept:
                 )
             elif self.intercept[TYPE_KEY] == TYPE_REQUEST:
                 ctx.log.info("Firebase Request Intercepted: Writing to Redis...")
-                cachekey = self.intercept[self.CACHE_KEY]
+                request_content_str = flow.request.content.decode("utf-8")
+                request_content_json = json.loads(request_content_str)
+
+                cachekey = self.intercept[self.CACHE_KEY] + "_" + request_content_json[self.IDENTIFIER_KEY]
+
+                # dict cache_map
+                cache_map = dict()
 
                 # write request to Redis
-                if self.redis.get(cachekey) is not None:
-                    ctx.log.info("Overwriting existing entry.")
+                raw_cached = self.redis.get(cachekey)
+                if raw_cached is not None:
+                    ctx.log.info("Entry exists. Overwriting existing entry.")
+                    # json cache_map
+                    cache_map = json.loads(raw_cached.decode("utf-8")
+                                           .replace("'", '"')
+                                           .replace("True", "true")
+                                           .replace("False", "false"))
 
-                cache_map = dict()
-                cache_map['url'] = flow.request.pretty_url
-                cache_map['method'] = flow.request.method
-                cache_map['content'] = flow.request.content.decode("utf-8")
+                if((self.PRIORITY_KEY in request_content_json) and
+                        (self.NOTIFICATION_KEY in request_content_json) and
+                        (self.CONTENT_AVAILABLE not in request_content_json)):
+                    # firebase request is Foreground
+                    ctx.log.info("Firebase foreground request intercepted.")
+                    cache_map_fg = dict()
+                    cache_map_fg[self.URL_KEY] = flow.request.pretty_url
+                    cache_map_fg[self.METHOD_KEY] = flow.request.method
+                    cache_map_fg[self.CONTENT_KEY] = request_content_json
+                    cache_map[self.FOREGROUND_KEY] = cache_map_fg
+                else:
+                    # firebase request is Background
+                    ctx.log.info("Firebase background request intercepted.")
+                    cache_map_bg = dict()
+                    cache_map_bg[self.URL_KEY] = flow.request.pretty_url
+                    cache_map_bg[self.METHOD_KEY] = flow.request.method
+                    cache_map_bg[self.CONTENT_KEY] = request_content_json
+                    cache_map[self.BACKGROUND_KEY] = cache_map_bg
 
                 # set redis entry, expiry is 7 days (604800 seconds)
                 self.redis.set(cachekey, cache_map, 604800)
