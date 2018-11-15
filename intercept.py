@@ -32,7 +32,7 @@ class Intercept:
 
     REDIS_HOST = "localhost"
     REDIS_PORT = 6379
-    REDIS_DB = 0
+    REDIS_DB = 5
 
     def __init__(self, domain):
         self.intercept = domain

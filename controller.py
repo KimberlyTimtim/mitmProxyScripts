@@ -8,7 +8,7 @@ ROUTE_ENGINE_FIREBASE_CALL = "/getFirebaseRequest"
 class CacheService:
     REDIS_HOST = "localhost"
     REDIS_PORT = 6379
-    REDIS_DB = 0
+    REDIS_DB = 5
     REDIS_CACHED_REQ_KEY = "firebase_req"
 
     def __init__(self):
